@@ -1,0 +1,38 @@
+LOGIN :
+
+
+TABLE - PA0001
+FEILDS : 
+EMPLOYEE_ID PERNR
+PASSWORD CHAR30
+
+Table name - ZEP_LOGIN577
+
+ZEMP_LOGIN577_FM
+
+ZEP_LOGIN_SD
+
+http://AZKTLDS5CP.kcloud.com:8000/sap/bc/srt/scs/sap/zep_login_sd?sap-client=100
+urn:sap-com:document:sap:rfc:functions
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                      xmlns:urn="urn:sap-com:document:sap:rfc:functions">
+      <soapenv:Header/>
+      <soapenv:Body>
+        <urn:ZEMP_LOGIN577_FM>
+          <IV_EMPLOYEE_ID>00000001</IV_EMPLOYEE_ID>
+          <IV_PASSWORD>0713</IV_PASSWORD>
+        </urn:ZEMP_LOGIN577_FM>
+      </soapenv:Body>
+    </soapenv:Envelope>
+
+
+<soap-env:Envelope xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap-env:Header/>
+    <soap-env:Body>
+        <n0:ZEMP_LOGIN577_FMResponse xmlns:n0="urn:sap-com:document:sap:rfc:functions">
+            <EV_FLAG>X</EV_FLAG>
+            <EV_MESSAGE>Login successful.</EV_MESSAGE>
+        </n0:ZEMP_LOGIN577_FMResponse>
+    </soap-env:Body>
+</soap-env:Envelope>

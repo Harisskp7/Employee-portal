@@ -1,0 +1,165 @@
+<div class="leave-container">
+  <div class="leave-header">
+    <h2 class="section-title">Leave Management</h2>
+    <p class="section-subtitle">View your leave balances and history</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading leave data...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <p>{{ errorMessage }}</p>
+    <button (click)="loadLeaveData()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- Leave Content -->
+  <div *ngIf="leaveData && !isLoading" class="leave-content">
+    <!-- Leave Summary -->
+    <div class="summary-section">
+      <h3 class="subsection-title">Leave Summary</h3>
+      <div class="summary-cards">
+        <div class="summary-card">
+          <div class="summary-icon">📊</div>
+          <div class="summary-content">
+            <h4>Total Quota</h4>
+            <div class="summary-value">{{ getTotalQuota() }} days</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon">📅</div>
+          <div class="summary-content">
+            <h4>Leave Taken</h4>
+            <div class="summary-value">{{ getLeaveTaken() }} days</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon">✅</div>
+          <div class="summary-content">
+            <h4>Available</h4>
+            <div class="summary-value">{{ getAvailableQuota() }} days</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon">⏰</div>
+          <div class="summary-content">
+            <h4>Hours</h4>
+            <div class="summary-value">{{ leaveData.EV_HOURS }} hrs</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leave Progress -->
+    <div class="progress-section">
+      <h3 class="subsection-title">Leave Usage Progress</h3>
+      <div class="progress-card">
+        <div class="progress-header">
+          <span>Leave Usage</span>
+          <span>{{ getQuotaPercentage() | number:'1.0-0' }}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="getQuotaPercentage()"></div>
+        </div>
+        <div class="progress-details">
+          <span>{{ getLeaveTaken() }} of {{ getTotalQuota() }} days used</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leave History -->
+    <div class="history-section">
+      <div class="history-header">
+        <h3 class="subsection-title">Leave History</h3>
+        <div class="filter-controls">
+          <select [(ngModel)]="selectedLeaveType" (change)="filterLeaves()" class="filter-select">
+            <option value="">All Leave Types</option>
+            <option *ngFor="let leaveType of getAvailableLeaveTypes()" [value]="leaveType">
+              {{ leaveType }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Leave Absences -->
+      <div class="leave-table" *ngIf="filteredAbsences.length > 0">
+        <h4 class="table-title">Leave Absences</h4>
+        <div class="table-header">
+          <div class="header-cell">Leave Type</div>
+          <div class="header-cell">Duration</div>
+          <div class="header-cell">Days</div>
+          <div class="header-cell">Hours</div>
+          <div class="header-cell">Reason</div>
+        </div>
+        <div class="table-row" *ngFor="let absence of filteredAbsences">
+          <div class="table-cell">
+            <span class="leave-type" [class]="getLeaveTypeClass(absence.REASON)">
+              {{ absence.REASON }}
+            </span>
+          </div>
+          <div class="table-cell">
+            <div class="date-range">
+              <div>{{ formatDate(absence.BEGDA) }}</div>
+              <div class="date-separator">to</div>
+              <div>{{ formatDate(absence.ENDDA) }}</div>
+            </div>
+          </div>
+          <div class="table-cell">
+            <span class="days-count">{{ absence.ABWTG }} days</span>
+          </div>
+          <div class="table-cell">
+            <span class="hours-count">{{ absence.STDAZ }} hrs</span>
+          </div>
+          <div class="table-cell">
+            <span class="reason">{{ absence.REASON }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leave Quotas -->
+      <div class="leave-table" *ngIf="filteredQuotas.length > 0">
+        <h4 class="table-title">Leave Quotas</h4>
+        <div class="table-header">
+          <div class="header-cell">Leave Type</div>
+          <div class="header-cell">Duration</div>
+          <div class="header-cell">Days</div>
+          <div class="header-cell">Quota</div>
+          <div class="header-cell">Reason</div>
+        </div>
+        <div class="table-row" *ngFor="let quota of filteredQuotas">
+          <div class="table-cell">
+            <span class="leave-type" [class]="getLeaveTypeClass(quota.REASON)">
+              {{ quota.REASON }}
+            </span>
+          </div>
+          <div class="table-cell">
+            <div class="date-range">
+              <div>{{ formatDate(quota.BEGDA) }}</div>
+              <div class="date-separator">to</div>
+              <div>{{ formatDate(quota.ENDDA) }}</div>
+            </div>
+          </div>
+          <div class="table-cell">
+            <span class="days-count">{{ quota.ANZHL }} days</span>
+          </div>
+          <div class="table-cell">
+            <span class="quota-count">{{ quota.ANZHL }} quota</span>
+          </div>
+          <div class="table-cell">
+            <span class="reason">{{ quota.REASON }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="no-data" *ngIf="filteredAbsences.length === 0 && filteredQuotas.length === 0 && !isLoading">
+        <div class="no-data-icon">📅</div>
+        <h4>No Leave Records Found</h4>
+        <p>{{ selectedLeaveType ? 'No records found for the selected leave type.' : 'You haven\'t taken any leave yet.' }}</p>
+      </div>
+    </div>
+  </div>
+</div> 

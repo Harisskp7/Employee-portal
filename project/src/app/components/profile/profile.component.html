@@ -1,0 +1,237 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <h2 class="section-title">My Profile</h2>
+    <p class="section-subtitle">View and manage your personal information</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading profile data...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <p>{{ errorMessage }}</p>
+    <button (click)="loadProfileData()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- Debug Info (remove in production) -->
+  <div *ngIf="currentEmployeeId" class="debug-info">
+    <p><strong>Current Employee ID:</strong> {{ currentEmployeeId }}</p>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="profileData && !isLoading" class="profile-content">
+    <!-- Profile Header Card -->
+    <div class="profile-card">
+      <div class="profile-avatar">
+        <div class="avatar-circle">
+          {{ getInitials(profileData.FIRST_NAME, profileData.LAST_NAME) }}
+        </div>
+      </div>
+      
+      <div class="profile-info">
+        <h3 class="employee-name">{{ getFullName() }}</h3>
+        <p class="employee-id">Employee ID: {{ profileData.PERSNO }}</p>
+        <p class="employee-company">{{ profileData.COMPANY }}</p>
+      </div>
+    </div>
+
+    <!-- Personal Information Section -->
+    <div class="section-container">
+      <h3 class="section-header">
+        <span class="section-icon">👤</span>
+        Personal Information
+      </h3>
+      <div class="details-grid">
+        <div class="detail-card">
+          <div class="detail-icon">👤</div>
+          <div class="detail-content">
+            <label>Full Name</label>
+            <span class="detail-value">{{ getFullName() }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">📧</div>
+          <div class="detail-content">
+            <label>Email Address</label>
+            <span class="detail-value">{{ profileData.EMAIL || 'Not specified' }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">🎂</div>
+          <div class="detail-content">
+            <label>Date of Birth</label>
+            <span class="detail-value">{{ formatDate(profileData.DOB) }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">⚧</div>
+          <div class="detail-content">
+            <label>Gender</label>
+            <span class="detail-value">{{ profileData.GENDER }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">🏠</div>
+          <div class="detail-content">
+            <label>City</label>
+            <span class="detail-value">{{ profileData.CITY || 'Not specified' }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">📍</div>
+          <div class="detail-content">
+            <label>Pin Code</label>
+            <span class="detail-value">{{ profileData.PIN_CODE || 'Not specified' }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">🌍</div>
+          <div class="detail-content">
+            <label>Country</label>
+            <span class="detail-value">{{ profileData.COUNTRY_TXT }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">🏳️</div>
+          <div class="detail-content">
+            <label>Nationality</label>
+            <span class="detail-value">{{ profileData.NATIONALITY_TXT }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Organizational Information Section -->
+    <div class="section-container">
+      <h3 class="section-header">
+        <span class="section-icon">🏢</span>
+        Organizational Information
+      </h3>
+      <div class="details-grid">
+        <div class="detail-card">
+          <div class="detail-icon">🆔</div>
+          <div class="detail-content">
+            <label>Employee ID</label>
+            <span class="detail-value">{{ profileData.PERSNO }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">📅</div>
+          <div class="detail-content">
+            <label>Joining Date</label>
+            <span class="detail-value">{{ formatDate(profileData.JOIN_DATE) }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">🏢</div>
+          <div class="detail-content">
+            <label>Company</label>
+            <span class="detail-value">{{ profileData.COMPANY }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">👥</div>
+          <div class="detail-content">
+            <label>Employee Group</label>
+            <span class="detail-value">{{ profileData.EMP_GROUP }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">💼</div>
+          <div class="detail-content">
+            <label>Employee Subgroup</label>
+            <span class="detail-value">{{ profileData.EMP_SUBGROUP }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">🏛️</div>
+          <div class="detail-content">
+            <label>Personnel Area</label>
+            <span class="detail-value">{{ profileData.PERS_AREA }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">🏛️</div>
+          <div class="detail-content">
+            <label>Personnel Subarea</label>
+            <span class="detail-value">{{ profileData.PERS_SUBAREA }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">🏢</div>
+          <div class="detail-content">
+            <label>Company Name</label>
+            <span class="detail-value">{{ profileData.COM_NAME }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Company Address Section -->
+    <div class="section-container">
+      <h3 class="section-header">
+        <span class="section-icon">📍</span>
+        Company Address
+      </h3>
+      <div class="details-grid">
+        <div class="detail-card">
+          <div class="detail-icon">🏢</div>
+          <div class="detail-content">
+            <label>Company Street</label>
+            <span class="detail-value">{{ profileData.COM_STREET }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">🏙️</div>
+          <div class="detail-content">
+            <label>Company City</label>
+            <span class="detail-value">{{ profileData.COM_CITY }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">📮</div>
+          <div class="detail-content">
+            <label>Company Pin Code</label>
+            <span class="detail-value">{{ profileData.COMP_PIN }}</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-icon">🌍</div>
+          <div class="detail-content">
+            <label>Company Country</label>
+            <span class="detail-value">{{ profileData.COM_COUNTRY_TXT }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Data State -->
+  <div *ngIf="!isLoading && !errorMessage && !profileData" class="no-data-container">
+    <div class="no-data-icon">📋</div>
+    <h3>No Profile Data Available</h3>
+    <p>Profile data could not be loaded. Please try refreshing the page or contact support.</p>
+    <button (click)="loadProfileData()" class="retry-btn">Try Again</button>
+  </div>
+</div> 
