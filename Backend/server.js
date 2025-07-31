@@ -11,7 +11,7 @@ const employeeLoginRoute = require('./employeeLoginRoute');
 const employeeProfileRoute = require('./employeeProfileRoute');
 const employeeLeaveRoute = require('./employeeLeaveRoute');
 const employeePayslipRoute = require('./employeePayslipRoute');
-// const customerSalesorderRoute = require('./customerSalesorderRoute');
+const employeeFormRoute = require('./employeeFormRoute');
 // const customerOverallsalesRoute = require('./customerOversalesRoute');
 // const customerInvoiceRoute = require('./customerInvoiceRoute');
 // const customerMemoRoute = require('./customerMemoRoute');
@@ -21,7 +21,14 @@ const employeePayslipRoute = require('./employeePayslipRoute');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// CORS configuration for credentials support
+app.use(cors({
+  origin: 'http://localhost:4200', // Specific origin instead of wildcard
+  credentials: true, // Allow credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(bodyParser.json());
 
 // Route mounting
@@ -29,7 +36,7 @@ app.use('/api/employee/login',employeeLoginRoute );  // if you move login to rou
 app.use('/api/employee/profile', employeeProfileRoute);
 app.use('/api/employee/leave', employeeLeaveRoute);
 app.use('/api/employee/payslip', employeePayslipRoute);
-// app.use('/api/customer/salesorder', customerSalesorderRoute);
+app.use('/api/employee/payslip/pdf', employeeFormRoute);
 // app.use('/api/customer/overallsales', customerOverallsalesRoute);
 // app.use('/api/customer/inv', customerInvoiceRoute);
 // app.use('/api/customer/memo', customerMemoRoute);

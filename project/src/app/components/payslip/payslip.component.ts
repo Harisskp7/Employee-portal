@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { PayslipResponse } from '../../models/employee.model';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+
 
 @Component({
   selector: 'app-payslip',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './payslip.component.html',
   styleUrls: ['./payslip.component.css']
 })
@@ -18,6 +20,8 @@ export class PayslipComponent implements OnInit {
   selectedMonth = '';
   selectedYear = '';
   isDownloading = false;
+  isSendingEmail = false;
+  emailAddress = '';
 
   // Available months and years for filtering
   availableMonths = [
@@ -43,7 +47,8 @@ export class PayslipComponent implements OnInit {
     { value: '2020', label: '2020' }
   ];
 
-  constructor(private authService: AuthService) {}
+  
+  constructor(private authService: AuthService, private http: HttpClient) {}
 
   ngOnInit(): void {
     // Set default values to current month and year
@@ -194,28 +199,145 @@ export class PayslipComponent implements OnInit {
     console.log('Month:', month);
     console.log('Year:', year);
 
-    if (!this.payslipData) {
-      console.error('No payslip data available for download');
+    if (!month || !year || !employeeId) {
+      console.error('Missing parameters:', { month, year, employeeId });
       return;
     }
 
     this.isDownloading = true;
-
-    // Create PDF content
-    const pdfContent = this.generatePayslipPDF();
+  
+    const url = 'http://localhost:5000/api/employee/payslip/pdf';
+    const monthName = this.getMonthName(month);
+    const body = { month: monthName, year, employeeId };
     
-    // Create blob and download
-    const blob = new Blob([pdfContent], { type: 'application/pdf' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `payslip-${month}-${year}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    console.log('Sending request to:', url);
+    console.log('Request body:', body);
+  
+    this.http.post(url, body, {
+      withCredentials: true,
+      responseType: 'json' // Changed to json to handle base64 response
+    }).subscribe({
+      next: (response: any) => {
+        console.log('Response received:', response);
+        if (response.success && response.pdf_base64) {
+          console.log('PDF base64 length:', response.pdf_base64.length);
+          // Convert base64 to blob and download
+          const blob = this.base64ToBlob(response.pdf_base64, 'application/pdf');
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = response.filename || `Payslip_${monthName}_${year}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(downloadUrl);
+          console.log('PDF downloaded successfully');
+        } else {
+          console.error('Invalid response format:', response);
+        }
+        this.isDownloading = false;
+      },
+      error: (err) => {
+        console.error('Error downloading payslip PDF:', err);
+        this.isDownloading = false;
+      }
+    });
+  }
 
-    this.isDownloading = false;
+  private getMonthName(monthNumber: string): string {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    const monthIndex = parseInt(monthNumber) - 1;
+    return months[monthIndex] || monthNumber;
+  }
+
+  sendEmail(employeeId: string, month: string, year: string): void {
+    if (!month || !year || !employeeId || !this.emailAddress) {
+      console.error('Missing parameters:', { month, year, employeeId, emailAddress: this.emailAddress });
+      return;
+    }
+
+    this.isSendingEmail = true;
+    
+    const monthName = this.getMonthName(month);
+    const period = `${monthName} ${year}`;
+    
+    // First download the PDF to get the blob
+    const url = 'http://localhost:5000/api/employee/payslip/pdf';
+    const body = { month: monthName, year, employeeId };
+    
+    console.log('Sending email request to:', url);
+    console.log('Request body:', body);
+    console.log('Email address:', this.emailAddress);
+  
+    this.http.post(url, body, {
+      withCredentials: true,
+      responseType: 'json'
+    }).subscribe({
+      next: (response: any) => {
+        console.log('Email response received:', response);
+        if (response.success && response.pdf_base64) {
+          // Convert base64 to blob and download first
+          const blob = this.base64ToBlob(response.pdf_base64, 'application/pdf');
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = `Payslip_${monthName}_${year}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(downloadUrl);
+          
+          // Wait a moment for download to start, then open Gmail
+          setTimeout(() => {
+            const gmailUrl = this.createGmailUrl(this.emailAddress, period);
+            window.open(gmailUrl, '_blank');
+            console.log('PDF downloaded and Gmail opened successfully');
+          }, 1000);
+          
+        } else {
+          console.error('Invalid response format for email:', response);
+        }
+        this.isSendingEmail = false;
+      },
+      error: (err) => {
+        console.error('Error preparing email:', err);
+        this.isSendingEmail = false;
+      }
+    });
+  }
+
+  private createGmailUrl(emailAddress: string, period: string): string {
+    // Gmail compose URL with subject and body
+    const subject = encodeURIComponent(`Payslip for ${period}`);
+    const body = encodeURIComponent(`Please find attached the payslip for ${period}.\n\nNote: The PDF file has been downloaded to your computer. Please attach it to this email.`);
+    
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailAddress)}&su=${subject}&body=${body}`;
+    
+    return gmailUrl;
+  }
+
+  
+
+  base64ToBlob(base64: string, mime: string): Blob {
+    // Remove data URL prefix if present
+    const base64Data = base64.replace(/^data:[^;]+;base64,/, '');
+    
+    try {
+      const byteChars = atob(base64Data);
+      const byteNumbers = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        byteNumbers[i] = byteChars.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      return new Blob([byteArray], { type: mime });
+    } catch (error) {
+      console.error('Error converting base64 to blob:', error);
+      throw new Error('Invalid base64 data');
+    }
   }
 
   private generatePayslipPDF(): string {

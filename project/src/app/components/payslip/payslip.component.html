@@ -67,6 +67,27 @@
           <div *ngIf="isDownloading" class="download-spinner"></div>
           {{ isDownloading ? 'Downloading...' : 'Download Payslip' }}
         </button>
+        
+        <div class="email-section">
+          <div class="email-input-group">
+            <input 
+              type="email" 
+              [(ngModel)]="emailAddress" 
+              placeholder="Enter email address"
+              class="email-input"
+              [disabled]="isSendingEmail">
+            <button 
+              (click)="sendEmail(getEmployeeId(), selectedMonth, selectedYear)" 
+              class="email-btn"
+              [disabled]="isSendingEmail || !emailAddress">
+              <svg *ngIf="!isSendingEmail" viewBox="0 0 24 24" fill="currentColor" class="email-btn-icon">
+                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+              </svg>
+              <div *ngIf="isSendingEmail" class="email-spinner"></div>
+              {{ isSendingEmail ? 'Sending...' : 'Send Email' }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
