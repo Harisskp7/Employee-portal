@@ -17,6 +17,7 @@ export class PayslipComponent implements OnInit {
   errorMessage = '';
   selectedMonth = '';
   selectedYear = '';
+  isDownloading = false;
 
   // Available months and years for filtering
   availableMonths = [
@@ -185,5 +186,169 @@ export class PayslipComponent implements OnInit {
     const startDate = this.formatDate(this.payslipData.BEGDA);
     const endDate = this.formatDate(this.payslipData.ENDDA);
     return `${startDate} to ${endDate}`;
+  }
+
+  downloadPayslip(employeeId: string, month: string, year: string): void {
+    // Console log the three details
+    console.log('Employee ID:', employeeId);
+    console.log('Month:', month);
+    console.log('Year:', year);
+
+    if (!this.payslipData) {
+      console.error('No payslip data available for download');
+      return;
+    }
+
+    this.isDownloading = true;
+
+    // Create PDF content
+    const pdfContent = this.generatePayslipPDF();
+    
+    // Create blob and download
+    const blob = new Blob([pdfContent], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `payslip-${month}-${year}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    this.isDownloading = false;
+  }
+
+  private generatePayslipPDF(): string {
+    if (!this.payslipData) return '';
+
+    const period = this.getSelectedPeriod();
+    const employeeId = this.getEmployeeId();
+    const monthlySalary = this.formatAmount(this.getMonthlySalary());
+    const annualSalary = this.formatAmount(this.getAnnualSalary());
+    const currency = this.getCurrency();
+    const capacity = this.getCapacity();
+    const workHours = this.getWorkHours();
+
+    // Simple HTML-based PDF content
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Payslip - ${period}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+          .section { margin: 20px 0; }
+          .section h3 { color: #333; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+          .info-row { display: flex; justify-content: space-between; margin: 5px 0; }
+          .label { font-weight: bold; }
+          .value { text-align: right; }
+          .total { font-weight: bold; font-size: 16px; background: #f0f0f0; padding: 10px; }
+          .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>EMPLOYEE PAYSLIP</h1>
+          <h2>${period}</h2>
+        </div>
+        
+        <div class="section">
+          <h3>Employee Information</h3>
+          <div class="info-row">
+            <span class="label">Employee ID:</span>
+            <span class="value">${employeeId}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Cost Center:</span>
+            <span class="value">${this.getCostCenter()}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Wage Type:</span>
+            <span class="value">${this.getWageType()}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Effective Period:</span>
+            <span class="value">${this.getEffectivePeriod()}</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Bank Information</h3>
+          <div class="info-row">
+            <span class="label">Bank Name:</span>
+            <span class="value">${this.payslipData.BANK_NAME}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Bank Key:</span>
+            <span class="value">${this.payslipData.BANK_KEY}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Account Number:</span>
+            <span class="value">${this.getAccountNumber()}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Currency:</span>
+            <span class="value">${currency}</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Pay Scale Information</h3>
+          <div class="info-row">
+            <span class="label">Pay Type:</span>
+            <span class="value">${this.payslipData.PAYTYPE || 'Not specified'}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Pay Area:</span>
+            <span class="value">${this.payslipData.PAYAREA || 'Not specified'}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Pay Group:</span>
+            <span class="value">${this.payslipData.PAYGROUP || 'Not specified'}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Pay Level:</span>
+            <span class="value">${this.payslipData.PAYLEVEL || 'Not specified'}</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Salary Details</h3>
+          <div class="info-row">
+            <span class="label">Basic Salary:</span>
+            <span class="value">${currency} ${monthlySalary}</span>
+          </div>
+          <div class="info-row total">
+            <span class="label">Total Monthly Salary:</span>
+            <span class="value">${currency} ${monthlySalary}</span>
+          </div>
+          <div class="info-row total">
+            <span class="label">Annual Salary:</span>
+            <span class="value">${currency} ${annualSalary}</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Additional Information</h3>
+          <div class="info-row">
+            <span class="label">Capacity:</span>
+            <span class="value">${capacity}%</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Work Hours:</span>
+            <span class="value">${workHours} hours</span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>This document was generated on ${new Date().toLocaleDateString()}</p>
+          <p>Employee Portal System</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return htmlContent;
   }
 }

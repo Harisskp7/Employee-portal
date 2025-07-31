@@ -12,7 +12,11 @@
 
   <!-- Error State -->
   <div *ngIf="errorMessage && !isLoading" class="error-container">
-    <div class="error-icon">⚠️</div>
+    <div class="error-icon">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+      </svg>
+    </div>
     <p>{{ errorMessage }}</p>
     <button (click)="loadLeaveData()" class="retry-btn">Retry</button>
   </div>
@@ -24,28 +28,45 @@
       <h3 class="subsection-title">Leave Summary</h3>
       <div class="summary-cards">
         <div class="summary-card">
-          <div class="summary-icon">📊</div>
+          <div class="summary-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+            </svg>
+          </div>
           <div class="summary-content">
             <h4>Total Quota</h4>
             <div class="summary-value">{{ getTotalQuota() }} days</div>
           </div>
         </div>
         <div class="summary-card">
-          <div class="summary-icon">📅</div>
+          <div class="summary-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+            </svg>
+          </div>
           <div class="summary-content">
             <h4>Leave Taken</h4>
             <div class="summary-value">{{ getLeaveTaken() }} days</div>
           </div>
         </div>
         <div class="summary-card">
-          <div class="summary-icon">✅</div>
+          <div class="summary-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+          </div>
           <div class="summary-content">
             <h4>Available</h4>
             <div class="summary-value">{{ getAvailableQuota() }} days</div>
           </div>
         </div>
         <div class="summary-card">
-          <div class="summary-icon">⏰</div>
+          <div class="summary-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+              <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+            </svg>
+          </div>
           <div class="summary-content">
             <h4>Hours</h4>
             <div class="summary-value">{{ leaveData.EV_HOURS }} hrs</div>
@@ -156,7 +177,11 @@
       </div>
 
       <div class="no-data" *ngIf="filteredAbsences.length === 0 && filteredQuotas.length === 0 && !isLoading">
-        <div class="no-data-icon">📅</div>
+        <div class="no-data-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+          </svg>
+        </div>
         <h4>No Leave Records Found</h4>
         <p>{{ selectedLeaveType ? 'No records found for the selected leave type.' : 'You haven\'t taken any leave yet.' }}</p>
       </div>
