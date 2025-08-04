@@ -10,13 +10,13 @@
 
 .section-title {
   font-size: 28px;
-  font-weight: 700;
-  color: white;
+  font-weight: 600;
+  color: #323130;
   margin: 0 0 8px 0;
 }
 
 .section-subtitle {
-  color: #E5E7EB;
+  color: #605e5c;
   font-size: 16px;
   margin: 0;
 }
@@ -24,7 +24,7 @@
 .subsection-title {
   font-size: 20px;
   font-weight: 600;
-  color: white;
+  color: #323130;
   margin: 0 0 20px 0;
 }
 
@@ -82,12 +82,12 @@
 
 .filter-select:focus {
   outline: none;
-  border-color: #B91C1C;
-  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+  border-color: #0078d4;
+  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
 }
 
 .filter-select:hover {
-  border-color: #B91C1C;
+  border-color: #0078d4;
 }
 
 .filter-info {
@@ -304,8 +304,8 @@
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f4f6;
-  border-top: 4px solid #dc2626;
+  border: 4px solid #f3f2f1;
+  border-top: 4px solid #0078d4;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -333,7 +333,7 @@
   width: 48px;
   height: 48px;
   margin-bottom: 16px;
-  color: #dc2626;
+  color: #d13438;
 }
 
 .error-icon svg {
@@ -342,19 +342,20 @@
 }
 
 .retry-btn {
-  background: #dc2626;
+  background: #0078d4;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
   margin-top: 16px;
   transition: background-color 0.2s;
+  font-size: 14px;
 }
 
 .retry-btn:hover {
-  background: #b91c1c;
+  background: #106ebe;
 }
 
 /* Payslip Content */
