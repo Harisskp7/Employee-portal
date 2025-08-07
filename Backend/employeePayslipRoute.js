@@ -7,7 +7,7 @@ const router = express.Router();
 const SAP_URL = 'http://AZKTLDS5CP.kcloud.com:8000/sap/bc/srt/scs/sap/zep_payslip_sd?sap-client=100';
 const SAP_AUTH = {
   username: 'K901577',
-  password: 'Haris@0713'
+  password: 'Harish@0701'
 };
 
 // SOAP POST Helper

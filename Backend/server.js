@@ -7,7 +7,7 @@ const xml2js = require('xml2js');
 const https = require('https');
 
 // Import route files
-const employeeLoginRoute = require('./employeeLoginRoute');
+const employeeLoginRoute = require('./empLoginRoute');
 const employeeProfileRoute = require('./employeeProfileRoute');
 const employeeLeaveRoute = require('./employeeLeaveRoute');
 const employeePayslipRoute = require('./employeePayslipRoute');
@@ -23,10 +23,7 @@ const PORT = process.env.PORT || 5000;
 
 // CORS configuration for credentials support
 app.use(cors({
-  origin: 'http://localhost:4200', // Specific origin instead of wildcard
-  credentials: true, // Allow credentials
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+
 }));
 
 app.use(bodyParser.json());

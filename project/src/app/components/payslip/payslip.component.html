@@ -58,7 +58,7 @@
       </div>
       <div class="download-actions">
         <button 
-          (click)="downloadPayslip(getEmployeeId(), selectedMonth, selectedYear)" 
+          (click)="downloadPayslip()" 
           class="download-btn"
           [disabled]="isDownloading">
           <svg *ngIf="!isDownloading" viewBox="0 0 24 24" fill="currentColor" class="download-btn-icon">

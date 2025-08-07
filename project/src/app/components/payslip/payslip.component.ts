@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { PayslipResponse } from '../../models/employee.model';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import jsPDF from 'jspdf';
 
 
 @Component({
@@ -193,53 +194,75 @@ export class PayslipComponent implements OnInit {
     return `${startDate} to ${endDate}`;
   }
 
-  downloadPayslip(employeeId: string, month: string, year: string): void {
-    // Console log the three details
-    console.log('Employee ID:', employeeId);
-    console.log('Month:', month);
-    console.log('Year:', year);
-
-    if (!month || !year || !employeeId) {
-      console.error('Missing parameters:', { month, year, employeeId });
+  generateAndDownloadPDF(): void {
+    if (!this.payslipData) {
+      console.error('No payslip data available to generate PDF.');
       return;
     }
+    const doc = new jsPDF();
+    const monthLabel = this.availableMonths.find(m => m.value === this.selectedMonth)?.label || this.selectedMonth;
+    doc.setFontSize(18);
+    doc.text('Payslip', 10, 15);
+    doc.setFontSize(12);
+    doc.text(`Employee ID: ${this.payslipData.PERNR}`, 10, 30);
+    doc.text(`Month: ${monthLabel}`, 10, 40);
+    doc.text(`Year: ${this.selectedYear}`, 10, 50);
+    doc.text(`Cost Center: ${this.payslipData.COSTCENTER}`, 10, 60);
+    doc.text(`Wage Type: ${this.payslipData.WAGETYPE}`, 10, 70);
+    doc.text(`Salary: ${this.payslipData.SALARY} ${this.payslipData.CURR}`, 10, 80);
+    doc.text(`Annual: ${this.payslipData.ANNUAL} ${this.payslipData.CURR}`, 10, 90);
+    doc.text(`Bank Name: ${this.payslipData.BANK_NAME}`, 10, 100);
+    doc.text(`Bank Key: ${this.payslipData.BANK_KEY}`, 10, 110);
+    doc.text(`Account No: ${this.payslipData.ACC_NO}`, 10, 120);
+    doc.text(`Effective Period: ${this.payslipData.BEGDA} to ${this.payslipData.ENDDA}`, 10, 130);
+    doc.text(`Pay Type: ${this.payslipData.PAYTYPE}`, 10, 140);
+    doc.text(`Pay Area: ${this.payslipData.PAYAREA}`, 10, 150);
+    doc.text(`Pay Group: ${this.payslipData.PAYGROUP}`, 10, 160);
+    doc.text(`Pay Level: ${this.payslipData.PAYLEVEL}`, 10, 170);
+    doc.text(`Capacity: ${this.payslipData.CAPACITY}`, 10, 180);
+    doc.text(`Work Hours: ${this.payslipData.WORKHRS}`, 10, 190);
+    doc.save(`Payslip_${monthLabel}_${this.selectedYear}.pdf`);
+  }
 
+  downloadPayslip(): void {
+    if (!this.payslipData) {
+      console.error('No payslip data available to download PDF.');
+      return;
+    }
     this.isDownloading = true;
-  
     const url = 'http://localhost:5000/api/employee/payslip/pdf';
-    const monthName = this.getMonthName(month);
-    const body = { month: monthName, year, employeeId };
-    
-    console.log('Sending request to:', url);
-    console.log('Request body:', body);
-  
-    this.http.post(url, body, {
-      withCredentials: true,
-      responseType: 'json' // Changed to json to handle base64 response
-    }).subscribe({
+    const body = {
+      employeeId: this.payslipData.PERNR,
+      month: this.selectedMonth,
+      year: this.selectedYear
+    };
+    this.http.post(url, body, { responseType: 'json' }).subscribe({
       next: (response: any) => {
-        console.log('Response received:', response);
+        this.isDownloading = false;
         if (response.success && response.pdf_base64) {
-          console.log('PDF base64 length:', response.pdf_base64.length);
-          // Convert base64 to blob and download
-          const blob = this.base64ToBlob(response.pdf_base64, 'application/pdf');
+          const base64Data = response.pdf_base64.replace(/^data:application\/pdf;base64,/, '');
+          const byteChars = atob(base64Data);
+          const byteNumbers = new Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) {
+            byteNumbers[i] = byteChars.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: 'application/pdf' });
           const downloadUrl = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = downloadUrl;
-          a.download = response.filename || `Payslip_${monthName}_${year}.pdf`;
+          a.download = response.filename || `Payslip_${this.selectedMonth}_${this.selectedYear}.pdf`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           window.URL.revokeObjectURL(downloadUrl);
-          console.log('PDF downloaded successfully');
         } else {
           console.error('Invalid response format:', response);
         }
-        this.isDownloading = false;
       },
       error: (err) => {
-        console.error('Error downloading payslip PDF:', err);
         this.isDownloading = false;
+        console.error('Error downloading payslip PDF:', err);
       }
     });
   }
@@ -259,53 +282,48 @@ export class PayslipComponent implements OnInit {
       console.error('Missing parameters:', { month, year, employeeId, emailAddress: this.emailAddress });
       return;
     }
-
     this.isSendingEmail = true;
-    
-    const monthName = this.getMonthName(month);
-    const period = `${monthName} ${year}`;
-    
-    // First download the PDF to get the blob
     const url = 'http://localhost:5000/api/employee/payslip/pdf';
-    const body = { month: monthName, year, employeeId };
-    
-    console.log('Sending email request to:', url);
-    console.log('Request body:', body);
-    console.log('Email address:', this.emailAddress);
-  
-    this.http.post(url, body, {
-      withCredentials: true,
-      responseType: 'json'
-    }).subscribe({
+    const body = { employeeId, month, year };
+    this.http.post(url, body, { responseType: 'json' }).subscribe({
       next: (response: any) => {
-        console.log('Email response received:', response);
+        this.isSendingEmail = false;
         if (response.success && response.pdf_base64) {
-          // Convert base64 to blob and download first
-          const blob = this.base64ToBlob(response.pdf_base64, 'application/pdf');
+          // Download the PDF first
+          const base64Data = response.pdf_base64.replace(/^data:application\/pdf;base64,/, '');
+          const byteChars = atob(base64Data);
+          const byteNumbers = new Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) {
+            byteNumbers[i] = byteChars.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: 'application/pdf' });
           const downloadUrl = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = downloadUrl;
-          a.download = `Payslip_${monthName}_${year}.pdf`;
+          a.download = response.filename || `Payslip_${month}_${year}.pdf`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           window.URL.revokeObjectURL(downloadUrl);
-          
-          // Wait a moment for download to start, then open Gmail
+
+          // Open Gmail with pre-filled subject and body
           setTimeout(() => {
-            const gmailUrl = this.createGmailUrl(this.emailAddress, period);
+            const period = `${month} ${year}`;
+            const subject = encodeURIComponent(`Payslip for ${period}`);
+            const bodyText = encodeURIComponent(
+              `Please find attached the payslip for ${period}.\n\nNote: The PDF file has been downloaded to your computer. Please attach it to this email.`
+            );
+            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(this.emailAddress)}&su=${subject}&body=${bodyText}`;
             window.open(gmailUrl, '_blank');
-            console.log('PDF downloaded and Gmail opened successfully');
           }, 1000);
-          
         } else {
           console.error('Invalid response format for email:', response);
         }
-        this.isSendingEmail = false;
       },
       error: (err) => {
-        console.error('Error preparing email:', err);
         this.isSendingEmail = false;
+        console.error('Error preparing email:', err);
       }
     });
   }
